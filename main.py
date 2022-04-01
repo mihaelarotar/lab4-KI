@@ -141,14 +141,14 @@ def plot_generation(generation, best_route):
     fig, ax = plt.subplots()
     for previous, current in zip(best_route, best_route[1:]):
         ax.plot([previous.get_x(), current.get_x()], [previous.get_y(), current.get_y()], 'g', linestyle="--")
-        ax.set_title(generation)
+    ax.plot([best_route[-1].get_x(), best_route[0].get_x()], [best_route[-1].get_y(), best_route[0].get_y()],
+            'g', linestyle="--")
+    ax.set_title(generation)
     plt.show()
 
 
-def travelling_salesman_problem(stadte, aux_stadte):
+def travelling_salesman_problem(parents):
     generation = 0
-    parinte1 = stadte
-    parinte2 = aux_stadte
 
     best_distance = sys.maxsize
     best_route = []
@@ -156,37 +156,46 @@ def travelling_salesman_problem(stadte, aux_stadte):
     best_distance_global = sys.maxsize
     best_route_global = []
 
-    if fitness_function(parinte1) < best_distance:
-        best_distance = fitness_function(parinte1)
-        best_route = parinte1
-
-    if fitness_function(parinte2) < best_distance:
-        best_distance = fitness_function(parinte2)
-        best_route = parinte2
+    dict_parents = []
+    for parent in parents:
+        dict_parents.append((parent, fitness_function(parent)))
+        if fitness_function(parent) < best_distance:
+            best_distance = fitness_function(parent)
+            best_route = parent
 
     best_distances = [best_distance]
+
+    print("----------------" + str(generation) + "--------------------")
+    # plot la best pe segment
+    plot_generation(generation, best_route)
+    print("Best Distance: " + str(best_distance))
 
     generation += 1
 
     while generation <= 2000:
-        nr = random.random()
-        # print("----------------" + str(generation) + "--------------------")
-        if nr >= 0.3:
+        copii = []
+        for i in range(40):
+            parinte1 = random.choice(list(zip(*dict_parents))[0])
+            nr = random.random()
+            # print("----------------" + str(generation) + "--------------------")
+            if nr < 0.3:
+                parinte2 = random.choice(list(zip(*dict_parents))[0])
+                parinte1 = kanten_rekombinationen(parinte1, parinte2)
             copil = vertauschende_mutation(parinte1)
-        else:
-            copil = kanten_rekombinationen(parinte1, parinte2)
+            copii.append(copil)
 
-        distance = fitness_function(copil)
-
-        if distance < best_distance:
-            best_route = copil
-            best_distance = distance
+        dict_copii = []
+        for copil in copii:
+            dict_copii.append((copil, fitness_function(copil)))
+            if fitness_function(copil) < best_distance:
+                best_distance = fitness_function(copil)
+                best_route = copil
 
         if generation in (500, 1000, 1500, 2000):
             print("----------------" + str(generation) + "--------------------")
             # plot la best pe segment
             plot_generation(generation, best_route)
-            print("Best Distance " + str(best_distance))
+            print("Best Distance: " + str(best_distance))
 
         best_distances.append(best_distance)
 
@@ -197,13 +206,15 @@ def travelling_salesman_problem(stadte, aux_stadte):
         best_route = []
 
         # schimb parintii pt urmatoarea generatie
-        parinte1 = parinte2
-        parinte2 = copil
+        dict_parents.extend(dict_copii)
+        dict_parents = sorted(dict_parents, key=lambda elem: elem[1])[:10]
         generation = generation + 1
 
     # plot la global
     generations = [i for i in range(2001)]
-    plt.plot(generations, best_distances, color='green', linestyle='dashed', linewidth=3)
+    plt.plot(generations, best_distances, color='green', linewidth=3)
+    plt.xlabel('Generations')
+    plt.ylabel('Distances')
     plt.title('Graph')
     plt.show()
 
@@ -215,30 +226,20 @@ if __name__ == '__main__':
 
     plot_anfang_punkte(liste)
 
-    # print("LISTA1")
-    # for node1 in liste:
-    #     print(node1)
+    perm_list = []
 
-    liste2 = vertauschende_mutation(liste)
-    # print("LISTA2")
-    # for node2 in liste2:
-    #     print(node2)
+    for r in range(10):
+        temp = liste.copy()
+        random.shuffle(temp)
+        perm_list.append(temp)
 
-    # liste3 = kantenKombinationen(liste, liste2)
-    # print("LISTA3")
-    # for node2 in liste3:
-    #     print(node2)
+    dist, route = travelling_salesman_problem(perm_list)
+    print("Best distance global: " + str(dist))
 
-    # print(str("Distanta lista 2 " + str(fitness_function(liste2))))
-    # print(str("Distanta lista 3 " + str(fitness_function(liste3))))
-    # print(len(liste), len(liste2))
-    dist, route = travelling_salesman_problem(liste, liste2)
-    print("Best distance global " + str(dist))
     fig, ax = plt.subplots()
     for previous, current in zip(route, route[1:]):
         ax.plot([previous.get_x(), current.get_x()], [previous.get_y(), current.get_y()], 'g', linestyle="--")
-        ax.set_title("Best")
+    ax.plot([route[-1].get_x(), route[0].get_x()], [route[-1].get_y(), route[0].get_y()], 'g', linestyle="--")
+    ax.set_title("Best")
     plt.show()
 
-    # for node in r:
-    #     print(node)
