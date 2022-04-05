@@ -17,7 +17,7 @@ def random_100():
     return list_nodes
 
 
-def euklid(node1, node2):
+def euclidean_distance(node1, node2):
     p1 = np.array((node1.get_x(), node1.get_y()))
     p2 = np.array((node2.get_x(), node2.get_y()))
 
@@ -31,85 +31,84 @@ def swap(obj1, obj2):
     return obj1, obj2
 
 
-def random_zahlen():
-    zahl1 = random.randint(0, 99)
-    zahl2 = random.randint(0, 99)
+def random_numbers():
+    number1 = random.randint(0, 99)
+    number2 = random.randint(0, 99)
 
-    return zahl1, zahl2
-
-
-def vertauschende_mutation(stadte):
-    aux_stadte = stadte.copy()
-
-    zahl1, zahl2 = random_zahlen()
-    while zahl1 == zahl2:
-        zahl1, zahl2 = random_zahlen()
-
-    if zahl1 > zahl2:
-        zahl1, zahl2 = swap(zahl1, zahl2)
-
-    for j in range(zahl1, zahl2 + 1):
-        aux_stadte[zahl1 + zahl2 - j] = stadte[j]
-
-    return aux_stadte
+    return number1, number2
 
 
-def kanten_rekombinationen(stadte, aux_stadte):
-    dic_nachbar = {}
+def vertauschende_mutation(cities):
+    aux_cities = cities.copy()
+
+    number1, number2 = random_numbers()
+    while number1 == number2:
+        number1, number2 = random_numbers()
+
+    if number1 > number2:
+        number1, number2 = swap(number1, number2)
+
+    for j in range(number1, number2 + 1):
+        aux_cities[number1 + number2 - j] = cities[j]
+
+    return aux_cities
+
+
+def kanten_rekombinationen(parent1, parent2):
+    adjacency_list = {}
 
     length = 100
     # vecini p1
-    for index, val in enumerate(stadte):  # i ia indice base ia val
-        dic_nachbar[val] = {stadte[index - 1], stadte[(index + 1) % length]}
+    for index, val in enumerate(parent1):  # i ia indice base ia val
+        adjacency_list[val] = {parent1[index - 1], parent1[(index + 1) % length]}
 
     # vecini p2
-    for index, val in enumerate(aux_stadte):
-        dic_nachbar[val].add(aux_stadte[index - 1])
-        dic_nachbar[val].add(aux_stadte[(index + 1) % length])
+    for index, val in enumerate(parent2):
+        adjacency_list[val].add(parent2[index - 1])
+        adjacency_list[val].add(parent2[(index + 1) % length])
 
     choose = random.randint(1, 2)
 
     if choose == 1:
-        nod = stadte[0]
+        nod = parent1[0]
     else:
-        nod = aux_stadte[0]
+        nod = parent2[0]
 
-    lista_finala = []
-    lista_finala.append(nod)
+    final_list = [nod]
 
-    while len(lista_finala) < 100:
-        lista_vecini = dic_nachbar[nod].copy()
-        del dic_nachbar[nod]
-        for key in dic_nachbar:
-            if nod in dic_nachbar[key]:
-                dic_nachbar[key].remove(nod)
+    while len(final_list) < 100:
+        neighbours = adjacency_list[nod].copy()
+        del adjacency_list[nod]
+        for key in adjacency_list:
+            if nod in adjacency_list[key]:
+                adjacency_list[key].remove(nod)
 
         # verificam ce nod sa luam dupa
-        if len(lista_vecini) == 0:
-            nod_nou = random.choice(list(dic_nachbar))
-            lista_finala.append(nod_nou)
+        if len(neighbours) == 0:
+            nod_nou = random.choice(list(adjacency_list))
+            final_list.append(nod_nou)
             nod = nod_nou
 
         else:
             minimum = 5
-            lista_minime = []
-            for i in lista_vecini:
-                lungime = len(dic_nachbar[i])
+            min_list = []
+            for i in neighbours:
+                list_length = len(adjacency_list[i])
 
-                if lungime < minimum:
-                    minimum = lungime
+                if list_length < minimum:
+                    minimum = list_length
 
-            for i in lista_vecini:
-                lungime = len(dic_nachbar[i])
-                if lungime == minimum:
-                    lista_minime.append(i)
+            for i in neighbours:
+                list_length = len(adjacency_list[i])
+                if list_length == minimum:
+                    min_list.append(i)
 
-            nod_nou = random.choice(lista_minime)
-            lista_finala.append(nod_nou)
+            nod_nou = random.choice(min_list)
+            final_list.append(nod_nou)
             # print(nod_nou)
             nod = nod_nou
 
-    return lista_finala
+    return final_list
 
 
 def plot_anfang_punkte(liste_punkte):
@@ -121,19 +120,19 @@ def plot_anfang_punkte(liste_punkte):
 
 def fitness_function(list_nodes):
     distance = 0
-    lungime_lista = len(list_nodes)
+    list_length = len(list_nodes)
     node_inceput = list_nodes[0]
-    nod_sfarsit = list_nodes[lungime_lista - 1]
+    nod_sfarsit = list_nodes[list_length - 1]
     node1 = list_nodes[0]
 
     i = 1
-    while i < lungime_lista:
+    while i < list_length:
         node2 = list_nodes[i]
-        distance = distance + euklid(node1, node2)
+        distance = distance + euclidean_distance(node1, node2)
         node1 = node2
         i = i + 1
 
-    distance = distance + euklid(node_inceput, nod_sfarsit)
+    distance = distance + euclidean_distance(node_inceput, nod_sfarsit)
     return distance
 
 
@@ -173,23 +172,23 @@ def travelling_salesman_problem(parents):
     generation += 1
 
     while generation <= 2000:
-        copii = []
+        children = []
         for i in range(40):
-            parinte1 = random.choice(list(zip(*dict_parents))[0])
+            parent1 = random.choice(list(zip(*dict_parents))[0])
             nr = random.random()
             # print("----------------" + str(generation) + "--------------------")
             if nr < 0.3:
-                parinte2 = random.choice(list(zip(*dict_parents))[0])
-                parinte1 = kanten_rekombinationen(parinte1, parinte2)
-            copil = vertauschende_mutation(parinte1)
-            copii.append(copil)
+                parent2 = random.choice(list(zip(*dict_parents))[0])
+                parent1 = kanten_rekombinationen(parent1, parent2)
+            child = vertauschende_mutation(parent1)
+            children.append(child)
 
-        dict_copii = []
-        for copil in copii:
-            dict_copii.append((copil, fitness_function(copil)))
-            if fitness_function(copil) < best_distance:
-                best_distance = fitness_function(copil)
-                best_route = copil
+        dict_children = []
+        for child in children:
+            dict_children.append((child, fitness_function(child)))
+            if fitness_function(child) < best_distance:
+                best_distance = fitness_function(child)
+                best_route = child
 
         if generation in (500, 1000, 1500, 2000):
             print("----------------" + str(generation) + "--------------------")
@@ -206,11 +205,11 @@ def travelling_salesman_problem(parents):
         best_route = []
 
         # schimb parintii pt urmatoarea generatie
-        dict_parents.extend(dict_copii)
+        dict_parents.extend(dict_children)
         dict_parents = sorted(dict_parents, key=lambda elem: elem[1])[:10]
         generation = generation + 1
 
-    # plot la global
+    # plot la grafic
     generations = [i for i in range(2001)]
     plt.plot(generations, best_distances, color='green', linewidth=3)
     plt.xlabel('Generations')
@@ -222,24 +221,18 @@ def travelling_salesman_problem(parents):
 
 
 if __name__ == '__main__':
-    liste = random_100()
+    points = random_100()
 
-    plot_anfang_punkte(liste)
+    plot_anfang_punkte(points)
 
     perm_list = []
 
     for r in range(10):
-        temp = liste.copy()
+        temp = points.copy()
         random.shuffle(temp)
         perm_list.append(temp)
 
     dist, route = travelling_salesman_problem(perm_list)
     print("Best distance global: " + str(dist))
 
-    fig, ax = plt.subplots()
-    for previous, current in zip(route, route[1:]):
-        ax.plot([previous.get_x(), current.get_x()], [previous.get_y(), current.get_y()], 'g', linestyle="--")
-    ax.plot([route[-1].get_x(), route[0].get_x()], [route[-1].get_y(), route[0].get_y()], 'g', linestyle="--")
-    ax.set_title("Best")
-    plt.show()
-
+    plot_generation("Best", route)
